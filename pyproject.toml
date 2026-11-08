@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Консольная примитивная база данных с хранением таблиц в JSON"
 readme = "README.md"
 authors = [
-    { name = "Fiber", email = "f@mail" }
+    { name = "Fayzulin", email = "FBR1313@yandex.ru" }
 ]
 requires-python = ">=3.12"
 dependencies = [
