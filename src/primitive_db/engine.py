@@ -135,6 +135,7 @@ def handle_select(metadata, user_input, rest):
     cache_key = (table_name, where_text, get_table_version(table_name))
 
     def read_records():
+        """Читает записи таблицы с учётом условия where."""
         return select(load_table_data(table_name), where_clause)
 
     records = cache_select(cache_key, read_records)

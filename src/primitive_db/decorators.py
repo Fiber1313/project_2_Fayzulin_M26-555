@@ -18,6 +18,7 @@ def handle_db_errors(func):
     """Перехватывает ошибки работы с базой и печатает понятное сообщение."""
 
     def wrapper(*args, **kwargs):
+        """Вызывает функцию и перехватывает ошибки."""
         try:
             return func(*args, **kwargs)
         except FileNotFoundError:
@@ -40,7 +41,9 @@ def confirm_action(action_name):
     """Фабрика декораторов: спрашивает подтверждение перед опасной операцией."""
 
     def decorator(func):
+        """Оборачивает функцию запросом подтверждения."""
         def wrapper(*args, **kwargs):
+            """Спрашивает подтверждение и вызывает функцию при ответе y."""
             answer = prompt.string(
                 f'Вы уверены, что хотите выполнить "{action_name}"? [y/n]: '
             )
@@ -58,6 +61,7 @@ def log_time(func):
     """Замеряет и печатает время выполнения функции."""
 
     def wrapper(*args, **kwargs):
+        """Вызывает функцию и печатает время её выполнения."""
         start = time.monotonic()
         result = func(*args, **kwargs)
         elapsed = time.monotonic() - start
@@ -75,6 +79,7 @@ def create_cacher():
     cache = {}
 
     def cache_result(key, value_func):
+        """Возвращает результат из кэша или вычисляет и сохраняет его."""
         if key in cache:
             return cache[key]
         result = value_func()
