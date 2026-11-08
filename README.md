@@ -58,17 +58,17 @@ uv run database
 Пример:
 
 ```
->>>Введите команду: insert into users values ("Sergei", 28, true)
+>>>Введите команду: insert into users values ("Кузя", 3000, true)
 Запись с ID=1 успешно добавлена в таблицу "users".
 
->>>Введите команду: select from users where age = 28
-+----+--------+-----+-----------+
-| ID |  name  | age | is_active |
-+----+--------+-----+-----------+
-| 1  | Sergei |  28 |    True   |
-+----+--------+-----+-----------+
+>>>Введите команду: select from users where age = 3000
++----+------+------+-----------+
+| ID | name | age  | is_active |
++----+------+------+-----------+
+| 1  | Кузя | 3000 |    True   |
++----+------+------+-----------+
 
->>>Введите команду: update users set age = 29 where name = "Sergei"
+>>>Введите команду: update users set age = 3001 where name = "Кузя"
 Запись с ID=1 в таблице "users" успешно обновлена.
 
 >>>Введите команду: delete from users where ID = 1

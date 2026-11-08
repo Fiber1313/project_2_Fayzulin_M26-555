@@ -49,7 +49,7 @@ def parse_literal(token):
 
 
 def parse_values(text):
-    """Разбирает '("Sergei", 28, true)' в список ['Sergei', 28, True]."""
+    """Разбирает '("Кузя", 3000, true)' в список ['Кузя', 3000, True]."""
     text = text.strip()
     if not (text.startswith("(") and text.endswith(")")):
         raise ValueError(text)
