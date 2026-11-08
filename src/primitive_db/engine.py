@@ -27,6 +27,7 @@ from primitive_db.core import (
     update,
     validate_clause,
 )
+from primitive_db.decorators import create_cacher
 from primitive_db.parser import (
     parse_set,
     parse_values,
@@ -36,11 +37,14 @@ from primitive_db.parser import (
 )
 from primitive_db.utils import (
     delete_table_data,
+    get_table_version,
     load_metadata,
     load_table_data,
     save_metadata,
     save_table_data,
 )
+
+cache_select = create_cacher()
 
 
 def print_help():
@@ -88,6 +92,8 @@ def handle_drop_table(metadata, user_input, params):
     if len(params) != 1:
         print_invalid_value(user_input)
         return
+    if get_existing_table(metadata, params[0]) is None:
+        return
     metadata = drop_table(metadata, params[0])
     if metadata is not None:
         save_metadata(META_FILE, metadata)
@@ -126,8 +132,14 @@ def handle_select(metadata, user_input, rest):
     where_clause = parse_where(where_text) if where_text else None
     if where_clause and not validate_clause(schema, where_clause):
         return
-    records = select(load_table_data(table_name), where_clause)
-    print_records(schema, records)
+    cache_key = (table_name, where_text, get_table_version(table_name))
+
+    def read_records():
+        return select(load_table_data(table_name), where_clause)
+
+    records = cache_select(cache_key, read_records)
+    if records is not None:
+        print_records(schema, records)
 
 
 def handle_update(metadata, user_input, rest):
@@ -152,9 +164,10 @@ def handle_update(metadata, user_input, rest):
         return
     if not validate_clause(schema, where_clause):
         return
-    table_data, updated_ids = update(
-        load_table_data(table_name), set_clause, where_clause
-    )
+    result = update(load_table_data(table_name), set_clause, where_clause)
+    if result is None:
+        return
+    table_data, updated_ids = result
     if not updated_ids:
         print("Ошибка: Записи, подходящие под условие, не найдены.")
         return
@@ -181,7 +194,10 @@ def handle_delete(metadata, user_input, rest):
     where_clause = parse_where(where_text)
     if not validate_clause(schema, where_clause):
         return
-    table_data, deleted_ids = delete(load_table_data(table_name), where_clause)
+    result = delete(load_table_data(table_name), where_clause)
+    if result is None:
+        return
+    table_data, deleted_ids = result
     if not deleted_ids:
         print("Ошибка: Записи, подходящие под условие, не найдены.")
         return

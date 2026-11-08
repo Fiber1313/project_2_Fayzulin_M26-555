@@ -22,6 +22,8 @@ WHERE_KEYWORD = " where "
 SET_KEYWORD = " set "
 
 INPUT_PROMPT = ">>>Введите команду: "
+CONFIRM_ANSWER = "y"
+TIME_PRECISION = 3
 
 HELP_TEXT = """
 ***Процесс работы с таблицей***

@@ -1,6 +1,7 @@
 """Основная логика: управление таблицами и CRUD-операции."""
 
 from primitive_db.constants import COLUMN_SEPARATOR, ID_COLUMN, ID_TYPE, VALID_TYPES
+from primitive_db.decorators import confirm_action, handle_db_errors, log_time
 from primitive_db.utils import load_table_data
 
 TYPE_BY_NAME = {"int": int, "str": str, "bool": bool}
@@ -37,6 +38,7 @@ def has_type(value, type_name):
     return type(value) is TYPE_BY_NAME[type_name]
 
 
+@handle_db_errors
 def create_table(metadata, table_name, columns):
     """Создаёт таблицу с автоматическим столбцом ID; при ошибке возвращает None."""
     if table_name in metadata:
@@ -60,6 +62,8 @@ def create_table(metadata, table_name, columns):
     return metadata
 
 
+@handle_db_errors
+@confirm_action("удаление таблицы")
 def drop_table(metadata, table_name):
     """Удаляет таблицу из метаданных; при ошибке возвращает None."""
     if table_name not in metadata:
@@ -88,9 +92,14 @@ def validate_clause(schema, clause):
 
 def matches(record, where_clause):
     """Проверяет, подходит ли запись под условие where."""
-    return all(record.get(column) == value for column, value in where_clause.items())
+    for column, value in where_clause.items():
+        if record.get(column) != value:
+            return False
+    return True
 
 
+@handle_db_errors
+@log_time
 def insert(metadata, table_name, values):
     """Добавляет запись в таблицу; возвращает (данные, ID) или None при ошибке."""
     if table_name not in metadata:
@@ -115,6 +124,8 @@ def insert(metadata, table_name, values):
     return table_data, new_id
 
 
+@handle_db_errors
+@log_time
 def select(table_data, where_clause=None):
     """Возвращает все записи или только подходящие под условие where."""
     if not where_clause:
@@ -122,6 +133,7 @@ def select(table_data, where_clause=None):
     return [record for record in table_data if matches(record, where_clause)]
 
 
+@handle_db_errors
 def update(table_data, set_clause, where_clause):
     """Обновляет подходящие записи; возвращает (данные, список ID обновлённых)."""
     updated_ids = []
@@ -132,13 +144,21 @@ def update(table_data, set_clause, where_clause):
     return table_data, updated_ids
 
 
+@handle_db_errors
+@confirm_action("удаление записи")
 def delete(table_data, where_clause):
     """Удаляет подходящие записи; возвращает (данные, список ID удалённых)."""
-    deleted_ids = [r[ID_COLUMN] for r in table_data if matches(r, where_clause)]
-    remaining = [r for r in table_data if not matches(r, where_clause)]
+    remaining = []
+    deleted_ids = []
+    for record in table_data:
+        if matches(record, where_clause):
+            deleted_ids.append(record[ID_COLUMN])
+        else:
+            remaining.append(record)
     return remaining, deleted_ids
 
 
+@handle_db_errors
 def info(metadata, table_name, table_data):
     """Печатает схему таблицы и количество записей."""
     print(f"Таблица: {table_name}")

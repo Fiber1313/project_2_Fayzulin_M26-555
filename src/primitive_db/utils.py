@@ -47,3 +47,11 @@ def delete_table_data(table_name):
     path = get_table_path(table_name)
     if os.path.exists(path):
         os.remove(path)
+
+
+def get_table_version(table_name):
+    """Возвращает время последнего изменения файла таблицы (для кэша)."""
+    path = get_table_path(table_name)
+    if not os.path.exists(path):
+        return None
+    return os.path.getmtime(path)
